@@ -7,8 +7,9 @@ import {
   CardContent,
   Typography,
   Button,
+  Box,
+  Grid
 } from "@mui/material";
-import { Grid } from "@mui/material";
 
 interface ProductVariant {
   id: number;
@@ -53,38 +54,76 @@ export default function HomePage() {
   };
 
   return (
-    <Container sx={{ mt: 5 }}>
-      <Typography variant="h5" fontWeight="bold" mb={3}>
-        Những hương vị được yêu thích nhất tuần
-      </Typography>
+    <>
+      {/* ===== GIỚI THIỆU ===== */}
+      <Box sx={{ py: 8, background: "#f5f5f5" }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box
+                component="img"
+                src="/about.jpg"
+                sx={{
+                  width: "100%",
+                  borderRadius: 4,
+                  boxShadow: 3
+                }}
+              />
+            </Grid>
 
-      <Grid container spacing={3}>
-  {products.map((item) => (
-    <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
-            <Card sx={{ borderRadius: 3 }}>
-              <CardMedia
-  component="img"
-  height="200"
-  image={getImage(item.imageUrl)}
-  sx={{ objectFit: "cover" }}
-/>
-              <CardContent>
-                <Typography fontWeight="bold">
-                  {item.name}
-                </Typography>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography variant="h4" fontWeight="bold" gutterBottom>
+                Về Nhà Hàng Của Chúng Tôi
+              </Typography>
 
-                <Typography color="primary" fontWeight="bold">
-                  {getPrice(item.productVariants).toLocaleString()}đ
-                </Typography>
+              <Typography sx={{ mb: 2 }}>
+                Chúng tôi mang đến trải nghiệm ẩm thực hiện đại kết hợp
+                cùng hương vị truyền thống Việt Nam.
+              </Typography>
 
-                <Button variant="contained" sx={{ mt: 1 }} fullWidth>
-                  THÊM
-                </Button>
-              </CardContent>
-            </Card>
+              <Button variant="contained">
+                TÌM HIỂU THÊM
+              </Button>
+            </Grid>
           </Grid>
-        ))}
-      </Grid>
-    </Container>
+        </Container>
+      </Box>
+
+      {/* ===== SẢN PHẨM ===== */}
+      <Container id="products" sx={{ mt: 6 }}>
+        <Typography variant="h5" fontWeight="bold" mb={3}>
+          Những hương vị được yêu thích nhất tuần
+        </Typography>
+
+        <Grid container spacing={3}>
+          {products.map((item) => (
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
+              <Card sx={{ borderRadius: 3 }}>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={getImage(item.imageUrl)}
+                  sx={{ objectFit: "cover" }}
+                />
+
+                <CardContent>
+                  <Typography fontWeight="bold">
+                    {item.name}
+                  </Typography>
+
+                  <Typography color="primary" fontWeight="bold">
+                    {getPrice(item.productVariants).toLocaleString()}đ
+                  </Typography>
+
+                  <Button variant="contained" sx={{ mt: 1 }} fullWidth>
+                    THÊM
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </>
   );
 }

@@ -2,7 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from './Homepage';
 import Layout from './Layout';
 import Login from './Login';
-import PaymentPage from './Payment';
+import Payment from './Payment';
+import SelectOrderPage from './SelectOrderPage';
 
 function App() {
   return (
@@ -10,10 +11,14 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/payment" element={<PaymentPage />} />
+
+        {/* Trang chọn order */}
+        <Route path="/payment" element={<SelectOrderPage />} />
+
+        {/* Trang thanh toán chi tiết */}
+        <Route path="/payment/:id" element={<Payment />} />
       </Routes>
     </Layout>
-
   );
 }
 

@@ -10,6 +10,7 @@ import Payment from './Payment';
 import SelectOrderPage from './SelectOrderPage';
 
 
+
 function App() {
   return (
     <Layout>
@@ -32,6 +33,7 @@ function App() {
 
         {/* Trang thanh toán chi tiết */}
         <Route path="/payment/:id" element={<Payment />} />
+        
         
       </Routes>
     </Layout>

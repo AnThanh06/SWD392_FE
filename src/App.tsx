@@ -5,12 +5,17 @@ import AdminDashboard from './AdminDashboard';
 import RevenueDashboard from './RevenueDashboard';
 import OrdersPage from './OrdersPage';
 import TablePage from './TablePage';
+import Login from './Login';
+import Payment from './Payment';
+import SelectOrderPage from './SelectOrderPage';
+
 
 function App() {
   return (
     <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
 
         <Route path="/admin" element={<AdminDashboard />}>
           
@@ -22,6 +27,12 @@ function App() {
           
           <Route path="revenuedashboard" element={<RevenueDashboard />} />
         </Route>
+        {/* Trang chọn order */}
+        <Route path="/payment" element={<SelectOrderPage />} />
+
+        {/* Trang thanh toán chi tiết */}
+        <Route path="/payment/:id" element={<Payment />} />
+        
       </Routes>
     </Layout>
   );

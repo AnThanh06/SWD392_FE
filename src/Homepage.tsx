@@ -7,9 +7,9 @@ import {
   CardContent,
   Typography,
   Button,
-  Box,
-  Grid
+  Box
 } from "@mui/material";
+import { Grid } from "@mui/material";
 
 interface ProductVariant {
   id: number;
@@ -24,7 +24,7 @@ interface Product {
   description: string;
   imageUrl: string;
   isActive: boolean;
-  productVariants: ProductVariant[];
+  variants: ProductVariant[];
 }
 
 export default function HomePage() {
@@ -34,16 +34,14 @@ export default function HomePage() {
     axios
       .get("https://localhost:7031/api/products")
       .then((res) => {
-        const activeProducts = res.data.filter(
-          (p: Product) => p.isActive
-        );
+        const activeProducts = res.data.filter((p: Product) => p.isActive);
         setProducts(activeProducts);
       })
-      .catch((err) => console.log(err));
+      .catch(console.log);
   }, []);
 
-  const getPrice = (variants: ProductVariant[]) => {
-    if (!variants || variants.length === 0) return 0;
+  const getPrice = (variants?: ProductVariant[]) => {
+    if (!variants?.length) return null;
     return Math.min(...variants.map((v) => v.price));
   };
 
@@ -55,19 +53,15 @@ export default function HomePage() {
 
   return (
     <>
-      {/* ===== GIỚI THIỆU ===== */}
       <Box sx={{ py: 8, background: "#f5f5f5" }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} alignItems="center">
+
             <Grid size={{ xs: 12, md: 6 }}>
               <Box
                 component="img"
                 src="/about.jpg"
-                sx={{
-                  width: "100%",
-                  borderRadius: 4,
-                  boxShadow: 3
-                }}
+                sx={{ width: "100%", borderRadius: 4, boxShadow: 3 }}
               />
             </Grid>
 
@@ -85,43 +79,47 @@ export default function HomePage() {
                 TÌM HIỂU THÊM
               </Button>
             </Grid>
+
           </Grid>
         </Container>
       </Box>
 
-      {/* ===== SẢN PHẨM ===== */}
-      <Container id="products" sx={{ mt: 6 }}>
+      <Container sx={{ mt: 6 }}>
         <Typography variant="h5" fontWeight="bold" mb={3}>
           Những hương vị được yêu thích nhất tuần
         </Typography>
 
         <Grid container spacing={3}>
-          {products.map((item) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
-              <Card sx={{ borderRadius: 3 }}>
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={getImage(item.imageUrl)}
-                  sx={{ objectFit: "cover" }}
-                />
+          {products.map((item) => {
+            const price = getPrice(item.variants);
 
-                <CardContent>
-                  <Typography fontWeight="bold">
-                    {item.name}
-                  </Typography>
+            return (
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
+                <Card sx={{ borderRadius: 3 }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={getImage(item.imageUrl)}
+                    sx={{ objectFit: "cover" }}
+                  />
 
-                  <Typography color="primary" fontWeight="bold">
-                    {getPrice(item.productVariants).toLocaleString()}đ
-                  </Typography>
+                  <CardContent>
+                    <Typography fontWeight="bold">
+                      {item.name}
+                    </Typography>
 
-                  <Button variant="contained" sx={{ mt: 1 }} fullWidth>
-                    THÊM
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+                    <Typography color="primary" fontWeight="bold">
+                      {price ? price.toLocaleString() + "đ" : "Liên hệ"}
+                    </Typography>
+
+                    <Button variant="contained" sx={{ mt: 1 }} fullWidth>
+                      THÊM
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
         </Grid>
       </Container>
     </>

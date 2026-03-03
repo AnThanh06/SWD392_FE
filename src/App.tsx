@@ -18,6 +18,7 @@ function App() {
 
         {/* Trang thanh toán chi tiết */}
         <Route path="/payment/:id" element={<Payment />} />
+        
       </Routes>
     </Layout>
   );

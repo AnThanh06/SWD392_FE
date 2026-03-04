@@ -28,10 +28,9 @@ function App() {
           
           <Route path="revenuedashboard" element={<RevenueDashboard />} />
         </Route>
-        {/* Trang chọn order */}
         <Route path="/payment" element={<SelectOrderPage />} />
 
-        {/* Trang thanh toán chi tiết */}
+       
         <Route path="/payment/:id" element={<Payment />} />
         
         

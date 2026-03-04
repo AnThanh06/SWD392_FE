@@ -27,7 +27,10 @@ export default function NavBar() {
 
   const menuItems: { label: string; path: string }[] = [
     { label: "Trang Chủ", path: "/" },
-    { label: "Về Chúng Tôi", path: "/about" }
+    { label: "Thực đơn", path: "/menupage" },
+    { label: "Thanh Toán", path: "/payment" },
+    
+    
   ];
 
   return (

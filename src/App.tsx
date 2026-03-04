@@ -8,6 +8,7 @@ import TablePage from './TablePage';
 import Login from './Login';
 import Payment from './Payment';
 import SelectOrderPage from './SelectOrderPage';
+import MenuPage from './MenuPage';
 
 
 
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/menupage" element={<MenuPage />} />
 
         <Route path="/admin" element={<AdminDashboard />}>
           

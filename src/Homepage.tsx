@@ -18,13 +18,13 @@ interface ProductVariant {
 }
 
 interface Product {
-  id: number;
+  productId: number;
   categoryId: number;
+  categoryName: string;
   name: string;
   description: string;
   imageUrl: string;
-  isActive: boolean;
-  productVariants: ProductVariant[];
+  variants: ProductVariant[];
 }
 
 export default function HomePage() {
@@ -34,10 +34,7 @@ export default function HomePage() {
     axios
       .get("https://localhost:7031/api/products")
       .then((res) => {
-        const activeProducts = res.data.filter(
-          (p: Product) => p.isActive
-        );
-        setProducts(activeProducts);
+        setProducts(res.data);
       })
       .catch((err) => console.log(err));
   }, []);
@@ -97,7 +94,7 @@ export default function HomePage() {
 
         <Grid container spacing={3}>
           {products.map((item) => (
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.productId}>
               <Card sx={{ borderRadius: 3 }}>
                 <CardMedia
                   component="img"
@@ -112,7 +109,7 @@ export default function HomePage() {
                   </Typography>
 
                   <Typography color="primary" fontWeight="bold">
-                    {getPrice(item.productVariants).toLocaleString()}đ
+                    {getPrice(item.variants).toLocaleString()}đ
                   </Typography>
 
                   <Button variant="contained" sx={{ mt: 1 }} fullWidth>

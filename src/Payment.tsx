@@ -79,41 +79,41 @@ export default function Payment() {
 
   // ================= HANDLE PAY =================
   const handlePay = async () => {
-  if (!id) return;
+    if (!id) return;
 
-  setPaying(true);
+    setPaying(true);
 
-  try {
-    const res = await fetch(
-      `http://localhost:5121/api/Payments/checkout/${id}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          paymentMethod: selectedMethod
-        })
+    try {
+      const res = await fetch(
+        `http://localhost:5121/api/Payments/checkout/${id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            paymentMethod: selectedMethod
+          })
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Thanh toán thất bại");
       }
-    );
 
-    const data = await res.json();
+      alert("Thanh toán thành công");
 
-    if (!res.ok) {
-      throw new Error(data?.message || "Thanh toán thất bại");
+      // 🔥 CHUYỂN TRANG SAU KHI THANH TOÁN
+      navigate("/payment");
+
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setPaying(false);
     }
-
-    alert("Thanh toán thành công");
-
-    // 🔥 CHUYỂN TRANG SAU KHI THANH TOÁN
-    navigate("/payment");
-
-  } catch (err: any) {
-    alert(err.message);
-  } finally {
-    setPaying(false);
-  }
-};
+  };
 
   // ================= RENDER =================
 

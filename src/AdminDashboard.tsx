@@ -1,170 +1,159 @@
-import React, { useState } from 'react';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
+// Giữ lại Icon của MUI vì chúng đẹp và tiện, nhưng ta sẽ style màu bằng Tailwind
 import {
-    Box, Drawer, AppBar, Toolbar, Typography, IconButton, List,
-    ListItemButton, ListItemIcon, ListItemText, CssBaseline, 
-    Divider, useTheme, Avatar, 
-} from '@mui/material';
-
-import MenuIcon from '@mui/icons-material/Menu';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-
-import LogoutIcon from '@mui/icons-material/Logout';
-
-const drawerWidth = 280; 
+  Menu as MenuIcon,
+  Dashboard as DashboardIcon,
+  Logout as LogoutIcon,
+  TableRestaurant, // Ví dụ thêm icon cho bàn
+  ReceiptLong,     // Ví dụ thêm icon cho đơn hàng
+  Close as CloseIcon
+} from "@mui/icons-material";
 
 const AdminDashboard = () => {
-    const theme = useTheme();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-    const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+  // Danh sách menu
+  const menuItems = [
+    { label: "Thông tin Doanh thu", icon: <DashboardIcon />, path: "/admin/revenuedashboard" },
+    { label: "Quản lý Đơn hàng", icon: <ReceiptLong />, path: "/admin/orderspage" },
+    { label: "Sơ đồ bàn", icon: <TableRestaurant />, path: "/admin/tablepage" },
+  ];
 
-    const menuItems = [
-        { label: 'Thông tin Doanh thu', icon: <DashboardIcon />, path: '/admin/revenuedashboard' },
-        { label: 'Đơn hàng', icon: <DashboardIcon />, path: '/admin/orderspage' },
-        { label: 'Trạng thái bàn', icon: <DashboardIcon />, path: '/admin/tablepage' },
+  // --- COMPONENT CON: SIDEBAR CONTENT ---
+  // Tách ra để dùng chung cho cả Mobile và Desktop
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+      {/* 1. Logo Section */}
+      <div className="flex items-center justify-center h-16 px-6 border-b border-gray-100">
+        <span className="text-2xl font-extrabold text-blue-600 tracking-wider">
+          ADMIN
+        </span>
+      </div>
+
+      {/* 2. Menu Items */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <button
+              key={item.path}
+              onClick={() => {
+                navigate(item.path);
+                setMobileOpen(false); // Đóng menu nếu đang ở mobile
+              }}
+              className={`
+                w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200
+                ${
+                  isActive
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }
+              `}
+            >
+              <span className={`mr-3 ${isActive ? "text-blue-600" : "text-gray-400"}`}>
+                {/* Clone icon để gán class size nếu cần, hoặc để nguyên */}
+                {React.cloneElement(item.icon as React.ReactElement, { fontSize: "small" })}
+              </span>
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* 3. Footer / Logout */}
+      <div className="p-4 border-t border-gray-100">
+        <button
+          onClick={() => navigate("/login")}
+          className="flex items-center w-full px-3 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+        >
+          <LogoutIcon fontSize="small" className="mr-3" />
+          Đăng xuất
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
+      
+      {/* ================= SIDEBAR (DESKTOP) ================= */}
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-30">
+        <SidebarContent />
+      </div>
+
+      {/* ================= SIDEBAR (MOBILE) ================= */}
+      {/* Backdrop mờ */}
+      {mobileOpen && (
+        <div 
+            className="fixed inset-0 z-40 bg-gray-900/50 md:hidden transition-opacity"
+            onClick={() => setMobileOpen(false)}
+        ></div>
+      )}
+
+      {/* Drawer trượt ra */}
+      <div
+        className={`
+            fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out md:hidden
+            ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        <div className="relative h-full">
+            {/* Nút đóng menu trên mobile */}
+            <button 
+                onClick={() => setMobileOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+                <CloseIcon />
+            </button>
+            <SidebarContent />
+        </div>
+      </div>
+
+      {/* ================= MAIN CONTENT WRAPPER ================= */}
+      <div className="flex flex-col flex-1 md:pl-64 transition-all duration-300">
         
-    ];
-
-    const drawer = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Logo / Brand Area */}
-            <Toolbar sx={{ px: 3, py: 2 }}>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: theme.palette.primary.main, letterSpacing: 1 }}>
-                    MY ADMIN
-                </Typography>
-            </Toolbar>
-
-            <List sx={{ px: 2, flexGrow: 1 }}>
-                {menuItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                        <ListItemButton 
-                            key={item.path} 
-                            onClick={() => {
-                                navigate(item.path);
-                                setMobileOpen(false);
-                            }}
-                            sx={{
-                                borderRadius: '12px',
-                                mb: 1,
-                                py: 1.2,
-                                backgroundColor: isActive ? 'primary.light' : 'transparent',
-                                color: isActive ? 'primary.main' : 'text.secondary',
-                                '&:hover': {
-                                    backgroundColor: isActive ? 'primary.light' : 'rgba(0,0,0,0.04)',
-                                },
-                                '& .MuiListItemIcon-root': {
-                                    color: isActive ? 'primary.main' : 'inherit',
-                                    minWidth: 45
-                                }
-                            }}
-                        >
-                            <ListItemIcon>{item.icon}</ListItemIcon>
-                            <ListItemText 
-                                primary={item.label} 
-                                primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: isActive ? 600 : 500 }} 
-                            />
-                        </ListItemButton>
-                    );
-                })}
-            </List>
-
-            <Divider sx={{ mx: 2, opacity: 0.5 }} />
-            
-            <Box sx={{ p: 2 }}>
-                <ListItemButton 
-                    onClick={() => navigate('/login')}
-                    sx={{ borderRadius: '12px', color: 'error.main' }}
-                >
-                    <ListItemIcon><LogoutIcon color="error" /></ListItemIcon>
-                    <ListItemText primary="Đăng xuất" primaryTypographyProps={{ fontWeight: 600 }} />
-                </ListItemButton>
-            </Box>
-        </Box>
-    );
-
-    return (
-        <Box sx={{ display: 'flex', bgcolor: '#F8F9FA', minHeight: '100vh' }}>
-            <CssBaseline />
-            
-            {/* Header sạch sẽ hơn */}
-            <AppBar
-                position="fixed"
-                sx={{
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    ml: { sm: `${drawerWidth}px` },
-                    bgcolor: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(8px)',
-                    color: 'text.primary',
-                    boxShadow: 'none',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider'
-                }}
+        {/* --- TOP HEADER --- */}
+        <header className="sticky top-0 z-20 flex items-center justify-between h-16 px-4 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sm:px-6 lg:px-8">
+          
+          <div className="flex items-center gap-4">
+            {/* Toggle Button (Mobile Only) */}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="p-2 -ml-2 text-gray-500 rounded-md md:hidden hover:bg-gray-100 focus:outline-none"
             >
-                <Toolbar sx={{ justifyContent: 'space-between' }}>
-                    <IconButton
-                        color="inherit"
-                        edge="start"
-                        onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { sm: 'none' } }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    
-                    <Typography variant="body1" sx={{ fontWeight: 500, color: 'text.secondary' }}>
-                        Trang quản trị / {menuItems.find(i => i.path === location.pathname)?.label || 'Dashboard'}
-                    </Typography>
+              <MenuIcon />
+            </button>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, display: { xs: 'none', md: 'block' } }}>
-                            Admin User
-                        </Typography>
-                        <Avatar sx={{ width: 35, height: 35, bgcolor: 'primary.main', fontSize: '1rem' }}>A</Avatar>
-                    </Box>
-                </Toolbar>
-            </AppBar>
+            {/* Breadcrumb / Title */}
+            <h1 className="text-lg font-semibold text-gray-800 hidden sm:block">
+               {menuItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
+            </h1>
+          </div>
 
-            {/* Sidebar */}
-            <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
-                <Drawer
-                    variant="temporary"
-                    open={mobileOpen}
-                    onClose={handleDrawerToggle}
-                    sx={{
-                        display: { xs: 'block', sm: 'none' },
-                        '& .MuiDrawer-paper': { width: drawerWidth, borderRight: 'none' },
-                    }}
-                >
-                    {drawer}
-                </Drawer>
-                <Drawer
-                    variant="permanent"
-                    sx={{
-                        display: { xs: 'none', sm: 'block' },
-                        '& .MuiDrawer-paper': { width: drawerWidth, borderRight: '1px solid rgba(0,0,0,0.08)' },
-                    }}
-                    open
-                >
-                    {drawer}
-                </Drawer>
-            </Box>
+          {/* User Profile Area */}
+          <div className="flex items-center gap-4">
+             <div className="hidden md:flex flex-col items-end">
+                <span className="text-sm font-semibold text-gray-700">Admin User</span>
+                <span className="text-xs text-gray-500">Quản trị viên</span>
+             </div>
+             <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md cursor-pointer hover:shadow-lg transition-shadow">
+                A
+             </div>
+          </div>
+        </header>
 
-            {/* Content Area full-width */}
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
-                }}
-            >
-                <Toolbar /> {/* Spacer dưới AppBar */}
-                <Outlet />
-            </Box>
-        </Box>
-    );
+        {/* --- PAGE CONTENT (Outlet) --- */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+                 <Outlet />
+            </div>
+        </main>
+      </div>
+    </div>
+  );
 };
 
 export default AdminDashboard;

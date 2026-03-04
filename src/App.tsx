@@ -9,6 +9,7 @@ import Login from './Login';
 import Payment from './Payment';
 import SelectOrderPage from './SelectOrderPage';
 import MenuPage from './MenuPage';
+import KitchenPage from './KitchenPage';
 
 
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/menupage" element={<MenuPage />} />
+        <Route path="/kitchenpage" element={<KitchenPage/>} />
 
         <Route path="/admin" element={<AdminDashboard />}>
           

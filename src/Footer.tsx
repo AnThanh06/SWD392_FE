@@ -6,20 +6,20 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 
 export default function Footer() {
   return (
-    <Box 
-      component="footer" 
-      sx={{ 
-        bgcolor: 'black', 
-        color: 'white',  
-        pt: 6,            
-        pb: 3,            
-        mt: 'auto'        
+    <Box
+      component="footer"
+      sx={{
+        bgcolor: 'black',
+        color: 'white',
+        pt: 6,
+        pb: 3,
+        mt: 'auto'
       }}
     >
       <Container maxWidth="lg">
         <Grid container spacing={4} sx={{ borderBottom: '1px solid #333', pb: 4, mb: 4 }}>
-          
-          
+
+
           <Grid size={{ xs: 12, md: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <RestaurantIcon sx={{ mr: 1, fontSize: 28 }} />
@@ -32,7 +32,7 @@ export default function Footer() {
             </Typography>
           </Grid>
 
-        
+
           <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Liên Hệ
@@ -48,7 +48,7 @@ export default function Footer() {
             </Typography>
           </Grid>
 
-          
+
           <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Giờ Mở Cửa
@@ -71,7 +71,7 @@ export default function Footer() {
 
         </Grid>
 
-        
+
         <Typography variant="body2" align="center" sx={{ color: 'grey.500' }}>
           © {new Date().getFullYear()} SWD_FOOD. All rights reserved. Designed with React & MUI v6.
         </Typography>

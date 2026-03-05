@@ -32,7 +32,7 @@ export default function HomePage() {
 
   useEffect(() => {
     axios
-      .get("https://localhost:7031/api/products")
+      .get("http://localhost:5121/api/products")
       .then((res) => {
         setProducts(res.data);
       })
@@ -47,7 +47,7 @@ export default function HomePage() {
   const getImage = (imageUrl: string) => {
     if (!imageUrl) return "https://via.placeholder.com/300";
     if (imageUrl.startsWith("http")) return imageUrl;
-    return `https://localhost:7031/images/${imageUrl}`;
+    return `http://localhost:5121/images/${imageUrl}`;
   };
 
   return (

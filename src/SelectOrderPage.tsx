@@ -14,7 +14,7 @@ export default function SelectOrderPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5121/api/Orders")
+    fetch("https://localhost:7031/api/Orders/GetAllOrders")
       .then(res => res.json())
       .then(data => {
         const unpaidOrders = data.filter(

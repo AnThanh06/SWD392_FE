@@ -43,6 +43,7 @@ export default function PaymentPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState("Cash"); // Khớp với enum backend thường là Capitalize
   const [paying, setPaying] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   // --- FETCH ORDER ---
   useEffect(() => {
@@ -58,7 +59,6 @@ export default function PaymentPage() {
         if (!res.ok) throw new Error("Không tải được đơn hàng");
         const data = await res.json();
         setOrder(data);
-        // Nếu backend trả về paymentMethod đã lưu, ưu tiên dùng nó
         if (data.paymentMethod) setSelectedMethod(data.paymentMethod);
       } catch (err: any) {
         setError(err.message);
@@ -73,9 +73,17 @@ export default function PaymentPage() {
   // --- HANDLE PAY ---
   const handlePay = async () => {
     if (!id) return;
+
+    // Nếu là ngân hàng mà chưa hiện QR thì hiện QR trước
+    if (selectedMethod === "Bank" && !showQR) {
+      setShowQR(true);
+      return;
+    }
+
     setPaying(true);
     try {
       const res = await fetch(`https://localhost:7031/api/Payments/checkout/${id}`, {
+        // ... (keep rest unchanged)
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paymentMethod: selectedMethod }),
@@ -222,6 +230,74 @@ export default function PaymentPage() {
           </div>
         )}
       </div>
+
+      {/* QR MODAL */}
+      {showQR && order && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="bg-orange-600 p-4 text-white flex justify-between items-center">
+              <h3 className="font-bold">Quét mã VietQR</h3>
+              <button
+                onClick={() => setShowQR(false)}
+                className="hover:bg-orange-700 p-1 rounded-full transition"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 flex flex-col items-center">
+              <div className="bg-gradient-to-br from-orange-50 to-white p-4 rounded-2xl border border-orange-100 mb-6">
+                {/* Ảnh QR của khách hàng */}
+                <img
+                  src="/src/assets/payments/vietcombank_qr.jpg"
+                  alt="Vietcombank QR"
+                  className="w-64 h-auto rounded-lg shadow-sm"
+                  onError={(e) => {
+                    // Fallback nếu chưa có ảnh
+                    (e.target as HTMLImageElement).src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
+                      encodeURIComponent(`STK: 1033995988, Chu TK: NGUYEN QUANG LAM, Noi dung: ${order.orderCode}, So tien: ${order.totalAmount}`);
+                  }}
+                />
+              </div>
+
+              <div className="w-full space-y-3 mb-6 bg-gray-50 p-4 rounded-xl">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Chủ tài khoản:</span>
+                  <span className="font-bold text-gray-800 uppercase">NGUYEN QUANG LAM</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Số tài khoản:</span>
+                  <span className="font-bold text-gray-800">1033995988</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Số tiền:</span>
+                  <span className="font-bold text-orange-600 animate-pulse">{order.totalAmount.toLocaleString()}đ</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Nội dung:</span>
+                  <span className="font-bold text-blue-600">{order.orderCode}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handlePay}
+                disabled={paying}
+                className="w-full bg-orange-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition shadow-lg shadow-orange-100"
+              >
+                {paying ? <Loader2 className="animate-spin" /> : <CheckCircle className="w-5 h-5" />}
+                XÁC NHẬN ĐÃ CHUYỂN
+              </button>
+
+              <button
+                onClick={() => setShowQR(false)}
+                className="mt-4 text-gray-400 text-sm hover:text-gray-600"
+              >
+                Quay lại
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

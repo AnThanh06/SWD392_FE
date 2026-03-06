@@ -8,51 +8,51 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+        e.preventDefault();
+        setError("");
+        setLoading(true);
 
-    try {
-        const response = await fetch("http://localhost:5121/api/Auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password,
-            }),
-        });
+        try {
+            const response = await fetch("https://localhost:7031/api/Auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                }),
+            });
 
-        if (!response.ok) {
-            throw new Error("Sai tài khoản hoặc mật khẩu");
+            if (!response.ok) {
+                throw new Error("Sai tài khoản hoặc mật khẩu");
+            }
+
+            const data = await response.json();
+
+            // ✅ Lưu token + role
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("role", data.role);
+
+            alert("Đăng nhập thành công!");
+
+            // ✅ Redirect theo role
+            if (data.role === "admin") {
+                window.location.href = "/admin";
+            } else if (data.role === "staff") {
+                window.location.href = "/staff";
+            } else if (data.role === "kitchen") {
+                window.location.href = "/kitchen";
+            } else {
+                window.location.href = "/";
+            }
+
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
-
-        const data = await response.json();
-
-        // ✅ Lưu token + role
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
-
-        alert("Đăng nhập thành công!");
-
-        // ✅ Redirect theo role
-        if (data.role === "admin") {
-            window.location.href = "/admin";
-        } else if (data.role === "staff") {
-            window.location.href = "/staff";
-        } else if (data.role === "kitchen") {
-            window.location.href = "/kitchen";
-        } else {
-            window.location.href = "/";
-        }
-
-    } catch (err: any) {
-        setError(err.message);
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     return (
         <div style={styles.wrapper}>

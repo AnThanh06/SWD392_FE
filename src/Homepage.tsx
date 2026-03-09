@@ -10,6 +10,7 @@ import {
   Box
 } from "@mui/material";
 import { Grid } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 interface ProductVariant {
   id: number;
@@ -29,6 +30,7 @@ interface Product {
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -51,12 +53,46 @@ export default function HomePage() {
     return `https://localhost:7031/images/${imageUrl}`;
   };
 
+  const handleAddToCart = (item: Product, price: number | null) => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    // Lấy variant đầu tiên làm mặc định (giống bên MenuPage)
+    const defaultVariant = item.variants && item.variants.length > 0 ? item.variants[0] : null;
+
+    if (!defaultVariant) {
+      alert("Món này tạm hết hoặc chưa cập nhật giá.");
+      return;
+    }
+
+    const newItem = {
+      tempId: `${item.id}-${defaultVariant.id}-${Date.now()}`,
+      product: {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        categoryId: item.categoryId,
+        categoryName: "", // Optional hoặc tìm trong list nếu cần, nhưng MenuPage chủ yếu dùng ID
+        variants: item.variants
+      },
+      selectedVariant: defaultVariant,
+      selectedToppings: [],
+      quantity: 1,
+      totalPrice: defaultVariant.price
+    };
+
+    cart.push(newItem);
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    navigate("/menupage"); // chuyển qua trang giỏ hàng
+  };
+
   return (
     <>
       <Box sx={{ py: 8, background: "#f5f5f5" }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} alignItems="center">
-
             <Grid size={{ xs: 12, md: 6 }}>
               <Box
                 component="img"
@@ -79,7 +115,6 @@ export default function HomePage() {
                 TÌM HIỂU THÊM
               </Button>
             </Grid>
-
           </Grid>
         </Container>
       </Box>
@@ -98,9 +133,13 @@ export default function HomePage() {
                 <Card sx={{ borderRadius: 3 }}>
                   <CardMedia
                     component="img"
-                    height="200"
                     image={getImage(item.imageUrl)}
-                    sx={{ objectFit: "cover" }}
+                    sx={{
+                      width: "100%",
+                      height: 220,
+                      objectFit: "cover",
+                      display: "block"
+                    }}
                   />
 
                   <CardContent>
@@ -112,7 +151,12 @@ export default function HomePage() {
                       {price ? price.toLocaleString() + "đ" : "Liên hệ"}
                     </Typography>
 
-                    <Button variant="contained" sx={{ mt: 1 }} fullWidth>
+                    <Button
+                      variant="contained"
+                      sx={{ mt: 1 }}
+                      fullWidth
+                      onClick={() => handleAddToCart(item, price)}
+                    >
                       THÊM
                     </Button>
                   </CardContent>

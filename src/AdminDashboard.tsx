@@ -20,6 +20,8 @@ const AdminDashboard = () => {
     { label: "Thông tin Doanh thu", icon: <DashboardIcon />, path: "/admin/revenuedashboard" },
     { label: "Quản lý Đơn hàng", icon: <ReceiptLong />, path: "/admin/orderspage" },
     { label: "Sơ đồ bàn", icon: <TableRestaurant />, path: "/admin/tablepage" },
+    { label: "Category", icon: <TableRestaurant />, path: "/admin/categorypage" },
+    { label: "Sản Phẩm", icon: <TableRestaurant />, path: "/admin/productpage" },
   ];
 
   // --- COMPONENT CON: SIDEBAR CONTENT ---

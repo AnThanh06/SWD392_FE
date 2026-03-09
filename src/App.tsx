@@ -10,6 +10,8 @@ import Payment from './Payment';
 import SelectOrderPage from './SelectOrderPage';
 import MenuPage from './MenuPage';
 import KitchenPage from './KitchenPage';
+import CategoryPage from './CategoryPage';
+import ProductPage from './ProductPage';
 
 
 
@@ -29,6 +31,9 @@ function App() {
           
           <Route path="orderspage" element={< OrdersPage />} />
           <Route path="tablepage" element={< TablePage />} />
+
+          <Route path="categorypage" element={< CategoryPage />} />
+          <Route path="productpage" element={< ProductPage />} />
           
           <Route path="revenuedashboard" element={<RevenueDashboard />} />
         </Route>

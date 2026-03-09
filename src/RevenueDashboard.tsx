@@ -31,8 +31,9 @@ const RevenueDashboard: React.FC = () => {
   const [month, setMonth] = useState(dayjs().month() + 1);
   const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
 
-  const [monthlyData, setMonthlyData] = useState<MonthlyRevenue | null>(null);
-  const [dailyData, setDailyData] = useState<DailyRevenue | null>(null);
+  // SỬA: Chuyển State thành Mảng (Array) thay vì Object đơn
+  const [monthlyData, setMonthlyData] = useState<MonthlyRevenue[]>([]);
+  const [dailyData, setDailyData] = useState<DailyRevenue[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Format tiền tệ Việt Nam
@@ -47,7 +48,9 @@ const RevenueDashboard: React.FC = () => {
         "https://localhost:7031/api/Payments/revenue/monthly",
         { params: { year, month } }
       );
-      setMonthlyData(res.data);
+      // Đảm bảo dữ liệu luôn là mảng (tránh lỗi nếu Backend chưa kịp sửa)
+      const dataArray = Array.isArray(res.data) ? res.data : [res.data];
+      setMonthlyData(dataArray);
     } catch (error) {
       console.error(error);
     } finally {
@@ -62,7 +65,9 @@ const RevenueDashboard: React.FC = () => {
         "https://localhost:7031/api/Payments/revenue/daily",
         { params: { date } }
       );
-      setDailyData(res.data);
+      // Đảm bảo dữ liệu luôn là mảng
+      const dataArray = Array.isArray(res.data) ? res.data : [res.data];
+      setDailyData(dataArray);
     } catch (error) {
       console.error(error);
     } finally {
@@ -77,7 +82,7 @@ const RevenueDashboard: React.FC = () => {
   }, [tab, year, month, date]);
 
   // --- RENDER HELPERS ---
-  
+
   // Custom Tab Button
   const TabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
     <button
@@ -116,6 +121,28 @@ const RevenueDashboard: React.FC = () => {
       <h3 className={`text-2xl font-bold ${colorClass}`}>{value}</h3>
     </div>
   );
+
+  // --- DATA PROCESSING CHO BIỂU ĐỒ VÀ THỐNG KÊ ---
+  
+  // 1. Chuẩn bị mảng dữ liệu cho Recharts
+  const chartData = tab === 0 
+    ? monthlyData.map(item => ({
+        name: `T${item.month}/${item.year}`,
+        revenue: item.totalRevenue || 0
+      }))
+    : dailyData.map(item => ({
+        name: dayjs(item.date).format("DD/MM/YYYY"),
+        revenue: item.totalRevenue || 0
+      }));
+
+  // 2. Tính tổng cho các Card (cộng dồn tất cả các phần tử trong mảng)
+  const totalRevenueSum = tab === 0
+    ? monthlyData.reduce((sum, item) => sum + (item.totalRevenue || 0), 0)
+    : dailyData.reduce((sum, item) => sum + (item.totalRevenue || 0), 0);
+
+  const totalOrdersSum = tab === 0
+    ? monthlyData.reduce((sum, item) => sum + (item.paidOrderCount || 0), 0)
+    : dailyData.reduce((sum, item) => sum + (item.paidOrderCount || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
@@ -187,14 +214,14 @@ const RevenueDashboard: React.FC = () => {
             {/* 1. Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <SummaryCard 
-                title="Tổng Doanh Thu" 
-                value={tab === 0 ? formatMoney(monthlyData?.totalRevenue || 0) : formatMoney(dailyData?.totalRevenue || 0)} 
+                title={tab === 0 ? "Tổng Doanh Thu (Tháng)" : "Tổng Doanh Thu (Ngày)"} 
+                value={formatMoney(totalRevenueSum)} 
                 colorClass="text-blue-600"
                 borderColor="border-blue-500"
               />
               <SummaryCard 
                 title="Đơn Đã Thanh Toán" 
-                value={tab === 0 ? monthlyData?.paidOrderCount : dailyData?.paidOrderCount} 
+                value={totalOrdersSum} 
                 colorClass="text-emerald-600"
                 borderColor="border-emerald-500"
               />
@@ -206,12 +233,7 @@ const RevenueDashboard: React.FC = () => {
               <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={[
-                      {
-                        name: tab === 0 ? `Tháng ${month}/${year}` : dayjs(dailyData?.date).format("DD/MM/YYYY"),
-                        revenue: tab === 0 ? (monthlyData?.totalRevenue || 0) : (dailyData?.totalRevenue || 0),
-                      },
-                    ]}
+                    data={chartData} // SỬA: Truyền mảng dữ liệu đã xử lý vào đây
                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
@@ -235,7 +257,7 @@ const RevenueDashboard: React.FC = () => {
                     />
                     <Bar 
                       dataKey="revenue" 
-                      fill={tab === 0 ? "#2563eb" : "#059669"} // Blue for Month, Green for Day
+                      fill={tab === 0 ? "#2563eb" : "#059669"} // Xanh dương cho Tháng, Xanh lá cho Ngày
                       barSize={60}
                       radius={[6, 6, 0, 0]} 
                     />

@@ -7,8 +7,9 @@ import {
   ReceiptLong,
   Person,
   AttachMoney,
-  Refresh
-} from "@mui/icons-material"; // Vẫn dùng icon của MUI vì nó đẹp và tiện
+  Refresh,
+  Close // Thêm icon Close cho Modal
+} from "@mui/icons-material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
@@ -18,6 +19,12 @@ dayjs.extend(relativeTime);
 dayjs.locale("vi");
 
 // --- INTERFACES ---
+interface OrderItem {
+  productName: string;
+  quantity: number;
+  price: number;
+}
+
 interface CurrentOrder {
   orderId: number;
   orderCode: string;
@@ -31,18 +38,22 @@ interface CurrentOrder {
   paymentStatus: string;
   createdAt: string;
   totalItems: number;
+  items?: OrderItem[]; // <-- Bổ sung mảng món ăn vào đây
 }
 
 interface TableData {
   id: number;
   name: string;
-  status: string; // "available" | "occupied" | "reserved"
+  status: string;
   currentOrder: CurrentOrder | null;
 }
 
 const TablePage = () => {
   const [tables, setTables] = useState<TableData[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // --- STATE CHO MODAL ---
+  const [selectedOrder, setSelectedOrder] = useState<CurrentOrder | null>(null);
 
   const API_URL = "https://localhost:7031/api/Tables/GetAllTable";
 
@@ -59,7 +70,7 @@ const TablePage = () => {
 
   useEffect(() => {
     fetchTables();
-    const interval = setInterval(fetchTables, 15000); // Refresh mỗi 15s
+    const interval = setInterval(fetchTables, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -74,22 +85,23 @@ const TablePage = () => {
     return amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
   };
 
+  // --- XỬ LÝ KHI BẤM VÀO BÀN ---
   const handleTableClick = (table: TableData) => {
     if (table.currentOrder) {
-      console.log(`Mở chi tiết đơn hàng ID: ${table.currentOrder.orderId}`);
-      // navigate(`/orders/${table.currentOrder.orderId}`);
+      // Bàn có khách -> Mở popup xem bill
+      setSelectedOrder(table.currentOrder);
     } else {
       console.log(`Tạo đơn mới cho bàn: ${table.id}`);
       // navigate(`/create-order?tableId=${table.id}`);
     }
   };
 
+  const closeModal = () => setSelectedOrder(null);
+
   // --- TAILWIND STYLING CONFIG ---
-  // Hàm này trả về bộ class CSS dựa trên trạng thái
   const getStyleConfig = (table: TableData) => {
     const hasOrder = !!table.currentOrder;
 
-    // 1. Đang có khách (Ưu tiên cao nhất)
     if (hasOrder) {
       return {
         card: "bg-orange-50 border-orange-200 hover:shadow-orange-100",
@@ -101,7 +113,6 @@ const TablePage = () => {
       };
     }
 
-    // 2. Các trạng thái khác
     switch (table.status) {
       case "available":
         return {
@@ -146,9 +157,7 @@ const TablePage = () => {
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
-            Sơ Đồ Bàn Ăn
-          </h1>
+          <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">Sơ Đồ Bàn Ăn</h1>
           <p className="text-gray-500 text-sm mt-1">Quản lý trạng thái bàn theo thời gian thực</p>
         </div>
 
@@ -175,31 +184,23 @@ const TablePage = () => {
             <div
               key={table.id}
               onClick={() => handleTableClick(table)}
-              className={`
-                relative p-4 rounded-xl border transition-all duration-200 cursor-pointer
-                hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between min-h-[160px]
-                ${config.card} bg-white
-              `}
+              className={`relative p-4 rounded-xl border transition-all duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between min-h-[160px] ${config.card} bg-white`}
             >
-              {/* Card Header */}
+              {/* Header Card */}
               <div className="flex justify-between items-start mb-3">
                 <div>
                     <h3 className={`text-lg font-bold ${config.text}`}>{table.name}</h3>
-                    {/* Badge trạng thái */}
                     <div className="mt-1">{config.Badge}</div>
                 </div>
-                
                 <div className={`${config.iconColor} opacity-80`}>
                     {order ? <Restaurant fontSize="large" /> : <MeetingRoom fontSize="large" />}
                 </div>
               </div>
 
-              {/* Card Body */}
+              {/* Body Card */}
               <div className="mt-auto">
                 {order ? (
                   <div className="space-y-2 pt-3 border-t border-dashed border-gray-300/50">
-                    
-                    {/* Tiền */}
                     <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500 font-medium uppercase">Tạm tính</span>
                         <div className="flex items-center gap-1 text-orange-600 font-bold text-base">
@@ -208,7 +209,6 @@ const TablePage = () => {
                         </div>
                     </div>
 
-                    {/* Thông tin phụ: Món & Giờ */}
                     <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
                         <div className="flex items-center gap-1 bg-white/50 p-1 rounded">
                             <ReceiptLong sx={{ fontSize: 14 }} />
@@ -219,17 +219,8 @@ const TablePage = () => {
                             <span className="truncate">{getTimeInfo(order.createdAt)}</span>
                         </div>
                     </div>
-
-                    {/* Nhân viên */}
-                    {order.staffName && (
-                        <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-1">
-                            <Person sx={{ fontSize: 12 }} />
-                            <span className="truncate max-w-[100px]">{order.staffName}</span>
-                        </div>
-                    )}
                   </div>
                 ) : (
-                  // Bàn trống
                   <div className="pt-4 flex flex-col items-center justify-center text-center opacity-60">
                     <p className={`text-xs font-medium ${config.subText}`}>Sẵn sàng đón khách</p>
                     <span className="text-[10px] text-gray-400 mt-1">Nhấn để tạo đơn</span>
@@ -240,6 +231,58 @@ const TablePage = () => {
           );
         })}
       </div>
+
+      {/* --- MODAL CHI TIẾT ĐƠN HÀNG --- */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+            
+            {/* Modal Header */}
+            <div className="bg-orange-500 p-4 text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Bàn: {selectedOrder.tableName}</h2>
+                <p className="text-sm opacity-90">Mã đơn: #{selectedOrder.orderCode}</p>
+              </div>
+              <button onClick={closeModal} className="p-1 hover:bg-orange-600 rounded-full transition">
+                <Close />
+              </button>
+            </div>
+
+            {/* Modal Body: Danh sách món */}
+            <div className="p-4 max-h-[60vh] overflow-y-auto">
+              {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                <ul className="divide-y divide-gray-100">
+                  {selectedOrder.items.map((item, index) => (
+                    <li key={index} className="py-3 flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-gray-800">{item.productName}</p>
+                        <p className="text-sm text-gray-500">x{item.quantity} • {formatMoney(item.price)}</p>
+                      </div>
+                      <div className="font-bold text-gray-700">
+                        {formatMoney(item.quantity * item.price)}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <ReceiptLong sx={{ fontSize: 40, opacity: 0.5, mb: 1 }} />
+                  <p>Chưa có chi tiết món ăn từ hệ thống.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer: Tổng tiền */}
+            <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-between items-center">
+              <span className="text-gray-600 font-medium">Tổng cộng:</span>
+              <span className="text-2xl font-bold text-orange-600">
+                {formatMoney(selectedOrder.totalAmount)}
+              </span>
+            </div>
+            
+          </div>
+        </div>
+      )}
     </div>
   );
 };

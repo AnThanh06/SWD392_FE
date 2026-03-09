@@ -17,7 +17,9 @@ export default function Layout({ children }: LayoutProps) {
     '/admin/revenuedashboard',
     '/admin/orderspage',
     '/admin/tablepage',
-    '/admin'
+    '/admin',
+    '/admin/categorypage',
+    '/admin/productpage',
   ];
 
   const noFooterRoutes = [
@@ -27,6 +29,9 @@ export default function Layout({ children }: LayoutProps) {
     '/admin/orderspage',
     '/admin/tablepage',
     '/admin',
+
+    '/admin/categorypage',
+    '/admin/productpage',
   ];
 
   const hideNav = noNavRoutes.includes(location.pathname);

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -52,6 +51,20 @@ interface CartItem {
   totalPrice: number;
 }
 
+// Thêm Type cho Bàn
+interface TableOrderInfo {
+  orderId: number;
+  orderCode: string;
+  totalAmount: number;
+}
+
+interface Table {
+  id: number;
+  name: string;
+  status: string;
+  currentOrder: TableOrderInfo | null;
+}
+
 // --- 2. MAIN COMPONENT ---
 
 const MenuPage = () => {
@@ -61,6 +74,7 @@ const MenuPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [toppings, setToppings] = useState<Topping[]>([]);
+  const [tables, setTables] = useState<Table[]>([]); // State lưu danh sách bàn
   const [loading, setLoading] = useState(true);
 
   // Filter & UI State
@@ -74,7 +88,8 @@ const MenuPage = () => {
   const [selectedToppings, setSelectedToppings] = useState<Topping[]>([]);
   const [quantity, setQuantity] = useState(1);
 
-  // Cart State
+  // Cart & Table Selection State
+  const [selectedTableId, setSelectedTableId] = useState<number | ''>(''); // State lưu bàn đang chọn
   const [cart, setCart] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem("cart");
     if (saved) {
@@ -97,10 +112,12 @@ const MenuPage = () => {
         // Thay đổi URL API cho phù hợp với backend của bạn
         const BASE_URL = 'https://localhost:7031/api';
 
-        const [catRes, prodRes, topRes] = await Promise.all([
+        // Gọi thêm API lấy danh sách bàn
+        const [catRes, prodRes, topRes, tableRes] = await Promise.all([
           axios.get(`${BASE_URL}/categories`),
           axios.get(`${BASE_URL}/products`),
-          axios.get(`${BASE_URL}/toppings`)
+          axios.get(`${BASE_URL}/toppings`),
+          axios.get(`${BASE_URL}/Tables/GetAllTable`)
         ]);
 
         setCategories(catRes.data);
@@ -110,6 +127,7 @@ const MenuPage = () => {
             ? topRes.data.filter((t: Topping) => t.isAvailable)
             : []
         );
+        setTables(tableRes.data); // Lưu dữ liệu bàn
 
       } catch (error) {
         console.error("Lỗi tải dữ liệu:", error);
@@ -157,7 +175,6 @@ const MenuPage = () => {
 
     setCart([...cart, newItem]);
     setIsModalOpen(false);
-    // Không cần mở Cart ngay, để Widget hiện ra cho khách thấy
   };
 
   const removeFromCart = (tempId: string) => {
@@ -167,8 +184,13 @@ const MenuPage = () => {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
+    if (selectedTableId === '') {
+      alert('Vui lòng chọn bàn trước khi xác nhận đặt đơn!');
+      return;
+    }
+
     const payload = {
-      tableId: 1, // Hardcode bàn 1 (cần logic chọn bàn thực tế)
+      tableId: selectedTableId, // Lấy ID bàn từ State
       staffId: null,
       items: cart.map(item => ({
         productVariantId: item.selectedVariant.id,
@@ -180,8 +202,14 @@ const MenuPage = () => {
     try {
       const res = await axios.post('https://localhost:7031/api/Orders', payload);
       alert('Đặt món thành công!');
+      
+      // Xóa giỏ hàng và reset bàn đã chọn
       setCart([]);
+      setSelectedTableId(''); 
       setIsCartOpen(false);
+
+      
+
       if (res.data?.orderId) {
         navigate(`/payment/${res.data.orderId}`);
       }
@@ -207,15 +235,10 @@ const MenuPage = () => {
 
   const getImageUrl = (imageUrl: string | null) => {
     if (!imageUrl) return "https://via.placeholder.com/300";
-
-    // nếu đã là link đầy đủ thì giữ nguyên
     if (imageUrl.startsWith("http")) return imageUrl;
-
-    // nếu chỉ là tên file thì nối với backend
     return `https://localhost:7031/images/${imageUrl}`;
   };
 
-  // Tính tổng cho Widget
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cart.reduce((sum, item) => sum + item.totalPrice, 0);
 
@@ -337,16 +360,12 @@ const MenuPage = () => {
         </div>
       </main>
 
-      {/* --- FLOATING CART WIDGET (NEW) --- */}
+      {/* --- FLOATING CART WIDGET --- */}
       {cart.length > 0 && (
         <div
           onClick={() => setIsCartOpen(true)}
           className="fixed bottom-6 right-6 z-40 cursor-pointer group animate-in slide-in-from-bottom-10 duration-500"
         >
-          {/* Ping animation effect */}
-          {/* <span className="absolute inline-flex h-full w-full rounded-2xl bg-green-600 opacity-20 animate-ping group-hover:opacity-10"></span> */}
-
-          {/* Widget Main Box */}
           <div className="relative bg-[#064e3b] hover:bg-[#022c22] transition-colors rounded-2xl shadow-2xl p-3 pl-4 pr-6 flex items-center gap-4 min-w-[240px] border border-green-800">
             <div className="bg-[#10b981] p-3 rounded-xl shrink-0 text-white shadow-inner">
               <Receipt className="h-6 w-6" />
@@ -359,7 +378,6 @@ const MenuPage = () => {
                 {cartTotal.toLocaleString('vi-VN')}đ
               </span>
             </div>
-            {/* Badge count */}
             <div className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
               {cart.length}
             </div>
@@ -518,7 +536,29 @@ const MenuPage = () => {
 
             {/* Cart Footer */}
             <div className="p-5 bg-white border-t shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)] z-10">
-              <div className="space-y-3 mb-4">
+              
+              {/* Vùng Chọn Bàn (MỚI THÊM VÀO ĐÂY) */}
+              <div className="mb-5">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Chọn bàn <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 text-gray-700 cursor-pointer"
+                  value={selectedTableId}
+                  onChange={(e) => setSelectedTableId(Number(e.target.value))}
+                >
+                  <option value="" disabled>-- Vui lòng chọn bàn trống --</option>
+                  {tables
+                    .filter((table) => table.status === 'available')
+                    .map((table) => (
+                      <option key={table.id} value={table.id}>
+                        {table.name}
+                      </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3 mb-4 border-t pt-4">
                 <div className="flex justify-between text-gray-600 text-sm">
                   <span>Tạm tính</span>
                   <span>{cartTotal.toLocaleString()}đ</span>
@@ -528,6 +568,7 @@ const MenuPage = () => {
                   <span className="text-orange-600">{cartTotal.toLocaleString()}đ</span>
                 </div>
               </div>
+              
               <button
                 onClick={handleCheckout}
                 disabled={cart.length === 0}

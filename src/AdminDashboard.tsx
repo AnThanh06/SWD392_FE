@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
-// Giữ lại Icon của MUI vì chúng đẹp và tiện, nhưng ta sẽ style màu bằng Tailwind
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   Logout as LogoutIcon,
-  TableRestaurant, // Ví dụ thêm icon cho bàn
-  ReceiptLong,     // Ví dụ thêm icon cho đơn hàng
+  TableRestaurant,
+  ReceiptLong,
   Close as CloseIcon
 } from "@mui/icons-material";
+
+import Category from "@mui/icons-material/Category";
+import Inventory2 from "@mui/icons-material/Inventory2";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -20,8 +22,8 @@ const AdminDashboard = () => {
     { label: "Thông tin Doanh thu", icon: <DashboardIcon />, path: "/admin/revenuedashboard" },
     { label: "Quản lý Đơn hàng", icon: <ReceiptLong />, path: "/admin/orderspage" },
     { label: "Sơ đồ bàn", icon: <TableRestaurant />, path: "/admin/tablepage" },
-    { label: "Category", icon: <TableRestaurant />, path: "/admin/categorypage" },
-    { label: "Sản Phẩm", icon: <TableRestaurant />, path: "/admin/productpage" },
+    { label: "Category", icon: <Category />, path: "/admin/categorypage" },
+    { label: "Sản Phẩm", icon: <Inventory2 />, path: "/admin/productpage" },
   ];
 
   // --- COMPONENT CON: SIDEBAR CONTENT ---
@@ -48,10 +50,9 @@ const AdminDashboard = () => {
               }}
               className={`
                 w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200
-                ${
-                  isActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                ${isActive
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }
               `}
             >
@@ -80,7 +81,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
-      
+
       {/* ================= SIDEBAR (DESKTOP) ================= */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-30">
         <SidebarContent />
@@ -89,9 +90,9 @@ const AdminDashboard = () => {
       {/* ================= SIDEBAR (MOBILE) ================= */}
       {/* Backdrop mờ */}
       {mobileOpen && (
-        <div 
-            className="fixed inset-0 z-40 bg-gray-900/50 md:hidden transition-opacity"
-            onClick={() => setMobileOpen(false)}
+        <div
+          className="fixed inset-0 z-40 bg-gray-900/50 md:hidden transition-opacity"
+          onClick={() => setMobileOpen(false)}
         ></div>
       )}
 
@@ -103,23 +104,23 @@ const AdminDashboard = () => {
         `}
       >
         <div className="relative h-full">
-            {/* Nút đóng menu trên mobile */}
-            <button 
-                onClick={() => setMobileOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-                <CloseIcon />
-            </button>
-            <SidebarContent />
+          {/* Nút đóng menu trên mobile */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          >
+            <CloseIcon />
+          </button>
+          <SidebarContent />
         </div>
       </div>
 
       {/* ================= MAIN CONTENT WRAPPER ================= */}
       <div className="flex flex-col flex-1 md:pl-64 transition-all duration-300">
-        
+
         {/* --- TOP HEADER --- */}
         <header className="sticky top-0 z-20 flex items-center justify-between h-16 px-4 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sm:px-6 lg:px-8">
-          
+
           <div className="flex items-center gap-4">
             {/* Toggle Button (Mobile Only) */}
             <button
@@ -131,27 +132,27 @@ const AdminDashboard = () => {
 
             {/* Breadcrumb / Title */}
             <h1 className="text-lg font-semibold text-gray-800 hidden sm:block">
-               {menuItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
+              {menuItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
             </h1>
           </div>
 
           {/* User Profile Area */}
           <div className="flex items-center gap-4">
-             <div className="hidden md:flex flex-col items-end">
-                <span className="text-sm font-semibold text-gray-700">Admin User</span>
-                <span className="text-xs text-gray-500">Quản trị viên</span>
-             </div>
-             <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md cursor-pointer hover:shadow-lg transition-shadow">
-                A
-             </div>
+            <div className="hidden md:flex flex-col items-end">
+              <span className="text-sm font-semibold text-gray-700">Admin User</span>
+              <span className="text-xs text-gray-500">Quản trị viên</span>
+            </div>
+            <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md cursor-pointer hover:shadow-lg transition-shadow">
+              A
+            </div>
           </div>
         </header>
 
         {/* --- PAGE CONTENT (Outlet) --- */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto">
-                 <Outlet />
-            </div>
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

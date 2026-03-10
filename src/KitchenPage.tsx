@@ -62,7 +62,6 @@ const KitchenPage = () => {
   // --- 3. Hàm xử lý chuyển trạng thái ---
   const handleUpdateStatus = async (itemId: number, newStatus: ItemStatus) => {
     try {
-      // a. Cập nhật UI ngay lập tức (Optimistic Update) để cảm giác nhanh hơn
       setOrders(prevOrders => prevOrders.map(order => ({
         ...order,
         items: order.items.map(item => {
@@ -70,20 +69,18 @@ const KitchenPage = () => {
                 return { ...item, status: newStatus };
             }
             return item;
-        }).filter(item => item.status !== 'served') // Ẩn món đã phục vụ (tuỳ logic)
-      })).filter(order => order.items.length > 0)); // Ẩn đơn hàng rỗng
+        }).filter(item => item.status !== 'served') 
+      })).filter(order => order.items.length > 0)); 
 
       // b. Gọi API thực sự
       await axios.put(`${API_BASE_URL}/update-status/${itemId}`, { 
         status: newStatus 
       });
 
-      // (Tuỳ chọn) Gọi lại fetchOrders để đồng bộ dữ liệu chuẩn xác
-      // fetchOrders(); 
 
     } catch (err) {
       alert("Lỗi cập nhật trạng thái! Vui lòng thử lại.");
-      fetchOrders(); // Revert lại dữ liệu cũ nếu lỗi
+      fetchOrders(); 
     }
   };
 

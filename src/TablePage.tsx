@@ -5,10 +5,10 @@ import {
   Restaurant,
   AccessTime,
   ReceiptLong,
-  Person,
   AttachMoney,
   Refresh,
-  Close // Thêm icon Close cho Modal
+  Close,
+  RestaurantMenu // Thêm icon cho món ăn
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -38,7 +38,7 @@ interface CurrentOrder {
   paymentStatus: string;
   createdAt: string;
   totalItems: number;
-  items?: OrderItem[]; // <-- Bổ sung mảng món ăn vào đây
+  items?: OrderItem[]; // Mảng chứa danh sách món ăn
 }
 
 interface TableData {
@@ -88,7 +88,7 @@ const TablePage = () => {
   // --- XỬ LÝ KHI BẤM VÀO BÀN ---
   const handleTableClick = (table: TableData) => {
     if (table.currentOrder) {
-      // Bàn có khách -> Mở popup xem bill
+      // Bàn có khách -> Mở popup xem bill (sẽ mang theo items)
       setSelectedOrder(table.currentOrder);
     } else {
       console.log(`Tạo đơn mới cho bàn: ${table.id}`);
@@ -147,7 +147,7 @@ const TablePage = () => {
   if (loading && tables.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -232,50 +232,65 @@ const TablePage = () => {
         })}
       </div>
 
-      {/* --- MODAL CHI TIẾT ĐƠN HÀNG --- */}
+      {/* --- MODAL CHI TIẾT ĐƠN HÀNG (HIỂN THỊ DANH SÁCH MÓN) --- */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
             
             {/* Modal Header */}
-            <div className="bg-orange-500 p-4 text-white flex justify-between items-center">
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-5 text-white flex justify-between items-start">
               <div>
-                <h2 className="text-xl font-bold">Bàn: {selectedOrder.tableName}</h2>
-                <p className="text-sm opacity-90">Mã đơn: #{selectedOrder.orderCode}</p>
+                <h2 className="text-2xl font-bold tracking-tight">Bàn: {selectedOrder.tableName}</h2>
+                <div className="flex items-center gap-2 mt-1 opacity-90">
+                  <span className="text-sm">Mã đơn: #{selectedOrder.orderCode}</span>
+                  <span className="text-xs px-2 py-0.5 bg-white/20 rounded-full">{selectedOrder.orderType === 'dine_in' ? 'Tại quán' : 'Mang đi'}</span>
+                </div>
               </div>
-              <button onClick={closeModal} className="p-1 hover:bg-orange-600 rounded-full transition">
+              <button 
+                onClick={closeModal} 
+                className="p-1.5 hover:bg-white/20 rounded-full transition-colors duration-200"
+              >
                 <Close />
               </button>
             </div>
 
             {/* Modal Body: Danh sách món */}
-            <div className="p-4 max-h-[60vh] overflow-y-auto">
+            <div className="p-5 max-h-[50vh] overflow-y-auto bg-gray-50">
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <RestaurantMenu sx={{ fontSize: 18 }} /> Chi tiết món ăn
+              </h3>
+              
               {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                <ul className="divide-y divide-gray-100">
+                <ul className="space-y-3">
                   {selectedOrder.items.map((item, index) => (
-                    <li key={index} className="py-3 flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-gray-800">{item.productName}</p>
-                        <p className="text-sm text-gray-500">x{item.quantity} • {formatMoney(item.price)}</p>
+                    <li key={index} className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-800 text-sm">{item.productName}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Số lượng: <span className="font-semibold text-gray-700">{item.quantity}</span> • {formatMoney(item.price)}
+                        </p>
                       </div>
-                      <div className="font-bold text-gray-700">
+                      <div className="font-bold text-orange-600 text-sm ml-4">
                         {formatMoney(item.quantity * item.price)}
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <ReceiptLong sx={{ fontSize: 40, opacity: 0.5, mb: 1 }} />
-                  <p>Chưa có chi tiết món ăn từ hệ thống.</p>
+                <div className="text-center py-10 bg-white rounded-lg border border-gray-100 border-dashed">
+                  <ReceiptLong sx={{ fontSize: 48, className: "text-gray-300 mb-2" }} />
+                  <p className="text-gray-500 font-medium">Chưa có chi tiết món ăn</p>
                 </div>
               )}
             </div>
 
             {/* Modal Footer: Tổng tiền */}
-            <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-between items-center">
-              <span className="text-gray-600 font-medium">Tổng cộng:</span>
-              <span className="text-2xl font-bold text-orange-600">
+            <div className="bg-white p-5 border-t border-gray-200 flex justify-between items-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+              <div>
+                <p className="text-sm text-gray-500 font-medium mb-1">Phục vụ: {selectedOrder.staffName || "N/A"}</p>
+                <span className="text-gray-800 font-bold uppercase text-sm">Tổng thanh toán</span>
+              </div>
+              <span className="text-3xl font-extrabold text-orange-600">
                 {formatMoney(selectedOrder.totalAmount)}
               </span>
             </div>

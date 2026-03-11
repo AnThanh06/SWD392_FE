@@ -34,13 +34,13 @@ const Login: React.FC = () => {
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", data.role);
 
-            alert("Đăng nhập thành công!");
+            
 
             // ✅ Redirect theo role
             if (data.role === "admin") {
                 window.location.href = "/admin";
             } else if (data.role === "staff") {
-                window.location.href = "/staff";
+                window.location.href = "/";
             } else if (data.role === "kitchen") {
                 window.location.href = "/kitchen";
             } else {

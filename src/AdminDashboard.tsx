@@ -26,18 +26,22 @@ const AdminDashboard = () => {
     { label: "Sản Phẩm", icon: <Inventory2 />, path: "/admin/productpage" },
   ];
 
-  // --- COMPONENT CON: SIDEBAR CONTENT ---
-  // Tách ra để dùng chung cho cả Mobile và Desktop
+  const handleLogout = () =>{
+    localStorage.removeItem("token")
+    navigate ("/login")
+  }
+
+  
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white border-r border-gray-200">
-      {/* 1. Logo Section */}
+      
       <div className="flex items-center justify-center h-16 px-6 border-b border-gray-100">
         <span className="text-2xl font-extrabold text-blue-600 tracking-wider">
           ADMIN
         </span>
       </div>
 
-      {/* 2. Menu Items */}
+      
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -66,10 +70,10 @@ const AdminDashboard = () => {
         })}
       </nav>
 
-      {/* 3. Footer / Logout */}
+      
       <div className="p-4 border-t border-gray-100">
         <button
-          onClick={() => navigate("/login")}
+          onClick={handleLogout} // Gọi hàm handleLogout ở đây
           className="flex items-center w-full px-3 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
         >
           <LogoutIcon fontSize="small" className="mr-3" />

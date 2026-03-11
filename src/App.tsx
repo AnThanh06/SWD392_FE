@@ -12,6 +12,7 @@ import MenuPage from './MenuPage';
 import KitchenPage from './KitchenPage';
 import CategoryPage from './CategoryPage';
 import ProductPage from './ProductPage';
+import StaffPage from './StaffPage';
 
 
 
@@ -23,6 +24,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/menupage" element={<MenuPage />} />
         <Route path="/kitchenpage" element={<KitchenPage/>} />
+        <Route path="/staffpage" element={<StaffPage/>} />
 
         <Route path="/admin" element={<AdminDashboard />}>
           

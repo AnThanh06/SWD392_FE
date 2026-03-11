@@ -214,7 +214,7 @@ const RevenueDashboard: React.FC = () => {
             {/* 1. Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <SummaryCard 
-                title={tab === 0 ? "Tổng Doanh Thu (Tháng)" : "Tổng Doanh Thu (Ngày)"} 
+                title={tab === 0 ? "Tổng Doanh Thu (Tháng)" : "Tổng Doanh Thu (Tháng)"} 
                 value={formatMoney(totalRevenueSum)} 
                 colorClass="text-blue-600"
                 borderColor="border-blue-500"

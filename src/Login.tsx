@@ -30,19 +30,15 @@ const Login: React.FC = () => {
 
             const data = await response.json();
 
-            // ✅ Lưu token + role
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", data.role);
 
-            
-
-            // ✅ Redirect theo role
             if (data.role === "admin") {
                 window.location.href = "/admin";
             } else if (data.role === "staff") {
                 window.location.href = "/";
             } else if (data.role === "kitchen") {
-                window.location.href = "/kitchen";
+                window.location.href = "/kitchenpage";
             } else {
                 window.location.href = "/";
             }

@@ -49,6 +49,12 @@ const KitchenPage = () => {
 
   const API_BASE_URL = "https://localhost:7031/api/Kitchen";
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    window.location.href = "/login";
+  };
+
   // --- 2. API Lấy đơn hàng đang nấu (Màn hình chính) ---
   const fetchOrders = async () => {
     setLoading(true);
@@ -154,15 +160,24 @@ const KitchenPage = () => {
             <p className="text-sm text-gray-500">Quản lý món ăn theo thời gian thực</p>
           </div>
         </div>
-        
-        {/* Nút mở Modal Lịch sử */}
-        <button 
-          onClick={() => setShowHistory(true)}
-          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-md active:scale-95"
-        >
-          <History className="h-5 w-5" />
-          Lịch sử món đã bưng
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Nút mở Modal Lịch sử */}
+          <button 
+            onClick={() => setShowHistory(true)}
+            className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-md active:scale-95"
+          >
+            <History className="h-5 w-5" />
+            Lịch sử món đã bưng
+          </button>
+
+          {/* Nút Logout */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-md active:scale-95"
+          >
+            Đăng xuất
+          </button>
+        </div>
       </div>
 
       {error && (

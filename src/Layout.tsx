@@ -20,6 +20,7 @@ export default function Layout({ children }: LayoutProps) {
     '/admin',
     '/admin/categorypage',
     '/admin/productpage',
+    '/kitchenpage',
   ];
 
   const noFooterRoutes = [
@@ -32,6 +33,7 @@ export default function Layout({ children }: LayoutProps) {
 
     '/admin/categorypage',
     '/admin/productpage',
+    '/kitchenpage'
   ];
 
   const hideNav = noNavRoutes.includes(location.pathname);

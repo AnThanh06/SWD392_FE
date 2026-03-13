@@ -52,6 +52,14 @@ const Login: React.FC = () => {
 
     return (
         <div style={styles.wrapper}>
+            {/* Nút quay lại trang chủ */}
+            <button 
+                style={styles.backButton} 
+                onClick={() => window.location.href = "/"}
+            >
+                ← Trang chủ
+            </button>
+
             <div style={styles.card}>
                 <div style={styles.logo}>🍴</div>
 
@@ -100,11 +108,25 @@ const Login: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
     wrapper: {
+        position: "relative", // Đã thêm position relative để định vị nút Back
         height: "100vh",
         backgroundColor: "#ffffff",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+    },
+    backButton: {
+        position: "absolute",
+        top: "20px",
+        left: "20px",
+        padding: "10px 16px",
+        borderRadius: "10px",
+        // border: "2px solid black",
+        backgroundColor: "#fff",
+        color: "#000",
+        fontWeight: "bold",
+        fontSize: "14px",
+        cursor: "pointer",
     },
     card: {
         width: "420px",
@@ -148,6 +170,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     input: {
         width: "100%",
         padding: "14px",
+        boxSizing: "border-box", // Thêm dòng này để input không bị tràn viền khi có padding
         borderRadius: "12px",
         border: "2px solid black",
         backgroundColor: "#fff",
@@ -175,7 +198,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         cursor: "pointer",
     },
     error: {
-        color: "black",
+        color: "red", 
         marginBottom: "15px",
         fontWeight: "bold",
         fontSize: "13px",

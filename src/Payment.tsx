@@ -222,10 +222,15 @@ export default function PaymentPage() {
         )}
 
         {/* Nút quay lại gọi thêm (Dành cho mô hình ăn xong mới trả) */}
+        {/* Nút quay lại gọi thêm (Dành cho mô hình ăn xong mới trả) */}
         {!isPaid && (
           <div className="px-6 pb-6 text-center">
-            <button onClick={() => navigate("/menupage")} className="text-sm text-gray-500 hover:text-orange-600 underline">
-              Quay lại gọi thêm món
+            {/* Truyền thêm orderId lên URL để trang Menu biết là đang thêm món */}
+            <button 
+              onClick={() => navigate(`/menupage?orderId=${id}`)} 
+              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-orange-100 hover:text-orange-600 transition duration-200"
+            >
+              + Trở về Menu để gọi thêm món
             </button>
           </div>
         )}
@@ -294,6 +299,9 @@ export default function PaymentPage() {
               >
                 Quay lại
               </button>
+
+
+
             </div>
           </div>
         </div>

@@ -104,11 +104,11 @@ export default function NavBar() {
                   to={item.path}
                   sx={{
                     fontWeight: 600,
-                    color: isActive(item.path) ? "primary.main" : "black",
-                    borderBottom: isActive(item.path) ? "2px solid #1976d2" : "none",
+                    color: isActive(item.path) ? "#ce1212" : "#333",
+                    borderBottom: isActive(item.path) ? "2px solid #ce1212" : "2px solid transparent",
                     borderRadius: 0,
                     "&:hover": {
-                      color: "grey.500",
+                      color: "#ce1212",
                       bgcolor: "transparent"
                     }
                   }}
@@ -123,7 +123,7 @@ export default function NavBar() {
                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                       <Avatar 
                         alt="User Avatar" 
-                        sx={{ bgcolor: "primary.main" }}
+                        sx={{ bgcolor: "#ce1212" }}
                       >
                         <PersonIcon />
                       </Avatar>
@@ -165,7 +165,11 @@ export default function NavBar() {
                     ml: 2,
                     borderRadius: "50px",
                     px: 3,
-                    fontWeight: "bold"
+                    fontWeight: "bold",
+                    background: "linear-gradient(135deg, #ce1212, #8b000a)",
+                    "&:hover": {
+                      background: "linear-gradient(135deg, #b00000, #6b0007)",
+                    }
                   }}
                 >
                   Đăng Nhập
@@ -235,7 +239,7 @@ export default function NavBar() {
                   to="/login"
                   onClick={() => setOpen(false)}
                 >
-                  <ListItemText primary="Đăng Nhập" sx={{ color: "primary.main", fontWeight: "bold" }} />
+                  <ListItemText primary="Đăng Nhập" sx={{ color: "#ce1212", fontWeight: "bold" }} />
                 </ListItemButton>
               </ListItem>
             )}

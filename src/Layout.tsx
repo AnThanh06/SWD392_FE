@@ -36,15 +36,22 @@ export default function Layout({ children }: LayoutProps) {
     '/kitchenpage'
   ];
 
+  const noContainerRoutes = ['/', '/menupage', '/payment'];
+
   const hideNav = noNavRoutes.includes(location.pathname);
   const hideFooter = noFooterRoutes.includes(location.pathname);
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const skipContainer = noContainerRoutes.includes(location.pathname);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {!hideNav && <NavBar />}
 
       {isAdminRoute ? (
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          {children}
+        </Box>
+      ) : skipContainer ? (
         <Box component="main" sx={{ flexGrow: 1 }}>
           {children}
         </Box>

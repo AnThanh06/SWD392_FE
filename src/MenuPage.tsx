@@ -11,6 +11,7 @@ import {
   Receipt,
   ChevronRight
 } from 'lucide-react';
+import {  useSearchParams } from 'react-router-dom';
 
 // --- 1. TYPE DEFINITIONS ---
 
@@ -70,25 +71,27 @@ interface Table {
 const MenuPage = () => {
   const navigate = useNavigate();
 
-  // --- STATE ---
+  const [searchParams] = useSearchParams();
+  const existingOrderId = searchParams.get('orderId');
+
+  
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [toppings, setToppings] = useState<Topping[]>([]);
   const [tables, setTables] = useState<Table[]>([]); // State lưu danh sách bàn
   const [loading, setLoading] = useState(true);
 
-  // Filter & UI State
+ 
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modal Detail State
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedToppings, setSelectedToppings] = useState<Topping[]>([]);
   const [quantity, setQuantity] = useState(1);
 
-  // Cart & Table Selection State
   const [selectedTableId, setSelectedTableId] = useState<number | ''>(''); // State lưu bàn đang chọn
   const [cart, setCart] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem("cart");
@@ -184,38 +187,60 @@ const MenuPage = () => {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
-    if (selectedTableId === '') {
-      alert('Vui lòng chọn bàn trước khi xác nhận đặt đơn!');
-      return;
-    }
-
-    const payload = {
-      tableId: selectedTableId, // Lấy ID bàn từ State
-      staffId: null,
-      items: cart.map(item => ({
-        productVariantId: item.selectedVariant.id,
-        quantity: item.quantity,
-        toppingIds: item.selectedToppings.map(t => t.id)
-      }))
-    };
-
     try {
-      const res = await axios.post('https://localhost:7031/api/Orders', payload);
-      alert('Đặt món thành công!');
-      
-      // Xóa giỏ hàng và reset bàn đã chọn
-      setCart([]);
-      setSelectedTableId(''); 
-      setIsCartOpen(false);
+      if (existingOrderId) {
+        // LUỒNG 1: THÊM MÓN VÀO ĐƠN CŨ
+        // Cấu trúc JSON khớp 100% với API Swagger bạn đưa
+        const payload = {
+          items: cart.map(item => ({
+            productVariantId: item.selectedVariant.id,
+            quantity: item.quantity,
+            voiceNote: "", // Nếu sau này có input ghi chú thì gán vào đây, tạm thời để rỗng
+            originalVoiceText: "",
+            toppingIds: item.selectedToppings.map(t => t.id)
+          }))
+        };
 
-      
+        // Gọi đúng endpoint: /api/Orders/{id}/items
+        await axios.post(`https://localhost:7031/api/Orders/${existingOrderId}/items`, payload);
+        alert('Thêm món vào đơn thành công!');
+        
+        setCart([]);
+        setIsCartOpen(false);
+        // Quay lại đúng cái trang thanh toán của đơn đó
+        navigate(`/payment/${existingOrderId}`); 
 
-      if (res.data?.orderId) {
-        navigate(`/payment/${res.data.orderId}`);
+      } else {
+        // LUỒNG 2: TẠO ĐƠN MỚI
+        if (selectedTableId === '') {
+          alert('Vui lòng chọn bàn trước khi xác nhận đặt đơn!');
+          return;
+        }
+
+        const payload = {
+          tableId: selectedTableId,
+          staffId: null,
+          items: cart.map(item => ({
+            productVariantId: item.selectedVariant.id,
+            quantity: item.quantity,
+            toppingIds: item.selectedToppings.map(t => t.id)
+          }))
+        };
+
+        const res = await axios.post('https://localhost:7031/api/Orders', payload);
+        alert('Đặt món thành công!');
+        
+        setCart([]);
+        setSelectedTableId(''); 
+        setIsCartOpen(false);
+
+        if (res.data?.orderId) {
+          navigate(`/payment/${res.data.orderId}`);
+        }
       }
     } catch (error: any) {
       console.error("Checkout Error:", error);
-      alert('Có lỗi xảy ra khi đặt món.');
+      alert('Có lỗi xảy ra khi xử lý.');
     }
   };
 
@@ -256,7 +281,7 @@ const MenuPage = () => {
       {/* --- SIDEBAR / CATEGORIES --- */}
       <aside className="w-full md:w-64 bg-white shadow-lg sticky top-0 z-20 md:h-screen flex flex-col shrink-0">
         <div className="p-6 border-b border-gray-100 flex items-center gap-2">
-          <div className="w-2 h-8 bg-orange-600 rounded-full"></div>
+          <div className="w-2 h-8 bg-red-700 rounded-full"></div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">THỰC ĐƠN</h1>
         </div>
 
@@ -267,7 +292,7 @@ const MenuPage = () => {
             <input
               type="text"
               placeholder="Tìm món..."
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-transparent focus:bg-white border focus:border-orange-500 rounded-xl text-sm transition-all outline-none"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-transparent focus:bg-white border focus:border-red-700 rounded-xl text-sm transition-all outline-none"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -279,8 +304,8 @@ const MenuPage = () => {
           <button
             onClick={() => setSelectedCategoryId('ALL')}
             className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex justify-between items-center group ${selectedCategoryId === 'ALL'
-              ? 'bg-orange-50 text-orange-700 border border-orange-200'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-orange-600'
+              ? 'bg-red-50 text-red-700 border border-red-200'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-red-700'
               }`}
           >
             <span>Tất cả món</span>
@@ -292,8 +317,8 @@ const MenuPage = () => {
               key={cat.id}
               onClick={() => setSelectedCategoryId(cat.id)}
               className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex justify-between items-center group ${selectedCategoryId === cat.id
-                ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-orange-600'
+                ? 'bg-red-50 text-red-700 border border-red-200'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-red-700'
                 }`}
             >
               <span>{cat.name}</span>
@@ -337,7 +362,7 @@ const MenuPage = () => {
                   )}
                   {/* Overlay Button */}
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="bg-white/90 backdrop-blur text-orange-600 px-4 py-2 rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
+                    <div className="bg-white/90 backdrop-blur text-red-700 px-4 py-2 rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
                       Chọn món
                     </div>
                   </div>
@@ -348,8 +373,8 @@ const MenuPage = () => {
                   <h3 className="font-bold text-gray-800 text-lg mb-1 line-clamp-1">{product.name}</h3>
                   <p className="text-xs text-gray-500 line-clamp-2 mb-3 flex-1">{product.description || "Món ngon mỗi ngày"}</p>
                   <div className="flex items-end justify-between mt-auto pt-3 border-t border-gray-50">
-                    <span className="text-lg font-extrabold text-orange-600">{getDisplayPrice(product)}</span>
-                    <div className="bg-orange-50 p-1.5 rounded-lg text-orange-600">
+                    <span className="text-lg font-extrabold text-red-700">{getDisplayPrice(product)}</span>
+                    <div className="bg-red-50 p-1.5 rounded-lg text-red-700">
                       <Plus className="h-4 w-4" />
                     </div>
                   </div>
@@ -366,12 +391,12 @@ const MenuPage = () => {
           onClick={() => setIsCartOpen(true)}
           className="fixed bottom-6 right-6 z-40 cursor-pointer group animate-in slide-in-from-bottom-10 duration-500"
         >
-          <div className="relative bg-[#064e3b] hover:bg-[#022c22] transition-colors rounded-2xl shadow-2xl p-3 pl-4 pr-6 flex items-center gap-4 min-w-[240px] border border-green-800">
-            <div className="bg-[#10b981] p-3 rounded-xl shrink-0 text-white shadow-inner">
+          <div className="relative bg-[#3b000f] hover:bg-[#2a0009] transition-colors rounded-2xl shadow-2xl p-3 pl-4 pr-6 flex items-center gap-4 min-w-[240px] border border-red-900">
+            <div className="bg-[#ce1212] p-3 rounded-xl shrink-0 text-white shadow-inner">
               <Receipt className="h-6 w-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-green-200 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-red-200 uppercase tracking-wider">
                 {totalQuantity} món tạm tính
               </span>
               <span className="text-xl font-bold text-[#fbbf24] font-mono tracking-tight leading-none mt-0.5">
@@ -413,11 +438,11 @@ const MenuPage = () => {
                       key={v.id}
                       onClick={() => setSelectedVariant(v)}
                       className={`cursor-pointer p-3 border rounded-xl flex justify-between items-center transition-all ${selectedVariant.id === v.id
-                        ? 'border-orange-500 bg-orange-50 ring-1 ring-orange-500'
-                        : 'border-gray-200 hover:border-orange-300'
+                        ? 'border-red-700 bg-red-50 ring-1 ring-red-700'
+                        : 'border-gray-200 hover:border-red-300'
                         }`}
                     >
-                      <span className={`text-sm font-medium ${selectedVariant.id === v.id ? 'text-orange-700' : 'text-gray-700'}`}>
+                      <span className={`text-sm font-medium ${selectedVariant.id === v.id ? 'text-red-700' : 'text-gray-700'}`}>
                         {v.sizeName === 'Default' ? 'Tiêu chuẩn' : `Size ${v.sizeName}`}
                       </span>
                       <span className="text-sm font-bold">{v.price.toLocaleString()}đ</span>
@@ -440,11 +465,11 @@ const MenuPage = () => {
                             if (isSelected) setSelectedToppings(prev => prev.filter(i => i.id !== t.id));
                             else setSelectedToppings(prev => [...prev, t]);
                           }}
-                          className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-orange-500 bg-orange-50' : 'border-gray-100 hover:bg-gray-50'
+                          className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-red-700 bg-red-50' : 'border-gray-100 hover:bg-gray-50'
                             }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-orange-500 border-orange-500' : 'border-gray-300 bg-white'}`}>
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-red-700 border-red-700' : 'border-gray-300 bg-white'}`}>
                               {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
                             </div>
                             <span className="text-sm text-gray-700">{t.name}</span>
@@ -462,13 +487,13 @@ const MenuPage = () => {
             <div className="p-4 border-t bg-white shadow-xl z-20">
               <div className="flex gap-4">
                 <div className="flex items-center border border-gray-300 rounded-xl px-2">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-3 text-gray-500 hover:text-orange-600"><Minus className="h-5 w-5" /></button>
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-3 text-gray-500 hover:text-red-700"><Minus className="h-5 w-5" /></button>
                   <span className="w-8 text-center font-bold text-gray-800 text-lg">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="p-3 text-gray-500 hover:text-orange-600"><Plus className="h-5 w-5" /></button>
+                  <button onClick={() => setQuantity(quantity + 1)} className="p-3 text-gray-500 hover:text-red-700"><Plus className="h-5 w-5" /></button>
                 </div>
                 <button
                   onClick={addToCart}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl py-3 font-bold hover:shadow-lg transition flex justify-between px-6 items-center"
+                  className="flex-1 bg-gradient-to-r from-red-700 to-red-900 text-white rounded-xl py-3 font-bold hover:shadow-lg transition flex justify-between px-6 items-center"
                 >
                   <span>Thêm vào đơn</span>
                   <span>{((selectedVariant.price + selectedToppings.reduce((s, t) => s + t.price, 0)) * quantity).toLocaleString()}đ</span>
@@ -488,7 +513,7 @@ const MenuPage = () => {
             {/* Cart Header */}
             <div className="p-5 border-b flex justify-between items-center bg-white z-10">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <ShoppingCart className="h-6 w-6 text-orange-600" />
+                <ShoppingCart className="h-6 w-6 text-red-700" />
                 Giỏ hàng <span className="text-gray-400 font-normal text-base">({cart.length})</span>
               </h2>
               <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition">
@@ -502,7 +527,7 @@ const MenuPage = () => {
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
                   <ShoppingCart className="h-16 w-16 text-gray-300" />
                   <p>Chưa có món nào được chọn</p>
-                  <button onClick={() => setIsCartOpen(false)} className="text-orange-600 font-bold hover:underline">Quay lại chọn món</button>
+                  <button onClick={() => setIsCartOpen(false)} className="text-red-700 font-bold hover:underline">Quay lại chọn món</button>
                 </div>
               ) : (
                 cart.map(item => (
@@ -525,7 +550,7 @@ const MenuPage = () => {
                         </p>
                       </div>
                       <div className="flex justify-between items-end mt-2">
-                        <span className="font-bold text-orange-600">{item.totalPrice.toLocaleString()}đ</span>
+                        <span className="font-bold text-red-700">{item.totalPrice.toLocaleString()}đ</span>
                         <span className="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded">x{item.quantity}</span>
                       </div>
                     </div>
@@ -543,7 +568,7 @@ const MenuPage = () => {
                   Chọn bàn <span className="text-red-500">*</span>
                 </label>
                 <select
-                  className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 text-gray-700 cursor-pointer"
+                  className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-red-700 bg-gray-50 text-gray-700 cursor-pointer"
                   value={selectedTableId}
                   onChange={(e) => setSelectedTableId(Number(e.target.value))}
                 >
@@ -565,14 +590,14 @@ const MenuPage = () => {
                 </div>
                 <div className="flex justify-between text-xl font-extrabold text-gray-900 pt-3 border-t">
                   <span>Tổng tiền</span>
-                  <span className="text-orange-600">{cartTotal.toLocaleString()}đ</span>
+                  <span className="text-orange-600 font-extrabold">{cartTotal.toLocaleString()}đ</span>
                 </div>
               </div>
               
               <button
                 onClick={handleCheckout}
                 disabled={cart.length === 0}
-                className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="w-full bg-gradient-to-r from-red-700 to-red-900 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 Xác nhận đặt đơn
               </button>

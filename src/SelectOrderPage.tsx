@@ -43,6 +43,23 @@ export default function SelectOrderPage() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
+  const handleCancelOrder = async (e: React.MouseEvent, orderId: number) => {
+
+    e.stopPropagation();
+
+    if (window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) {
+      try {
+        await axios.put(`https://localhost:7031/api/Orders/${orderId}/cancel`);
+
+        setOrders(orders.filter((o) => o.orderId !== orderId));
+        alert("Đã hủy đơn hàng thành công!");
+      } catch (error) {
+        console.error("Lỗi khi hủy đơn:", error);
+        alert("Có lỗi xảy ra, không thể hủy đơn hàng này.");
+      }
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-gray-500">Đang tải danh sách đơn...</div>;
 
   return (
@@ -89,6 +106,15 @@ export default function SelectOrderPage() {
               <span className="text-xl font-bold text-gray-900">
                 {formatCurrency(order.totalAmount)}
               </span>
+            </div>
+
+            <div className="flex justify-end mt-1">
+              <button
+                onClick={(e) => handleCancelOrder(e, order.orderId)}
+                className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1 rounded text-sm font-medium transition"
+              >
+                Hủy đơn
+              </button>
             </div>
           </div>
         ))}

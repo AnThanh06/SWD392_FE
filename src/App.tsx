@@ -13,6 +13,8 @@ import KitchenPage from './KitchenPage';
 import CategoryPage from './CategoryPage';
 import ProductPage from './ProductPage';
 import StaffPage from './StaffPage';
+import StaffManagementPage from './StaffManagementPage';
+import KitchenManagementPage from './KitchenManagementPage';
 
 
 
@@ -36,6 +38,8 @@ function App() {
 
           <Route path="categorypage" element={< CategoryPage />} />
           <Route path="productpage" element={< ProductPage />} />
+          <Route path="staffs" element={<StaffManagementPage />} />
+          <Route path="kitchens" element={<KitchenManagementPage />} />
           
           <Route path="revenuedashboard" element={<RevenueDashboard />} />
         </Route>

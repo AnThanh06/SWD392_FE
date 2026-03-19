@@ -11,6 +11,8 @@ import {
 
 import Category from "@mui/icons-material/Category";
 import Inventory2 from "@mui/icons-material/Inventory2";
+import People from "@mui/icons-material/People";
+import Restaurant from "@mui/icons-material/Restaurant";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -24,6 +26,8 @@ const AdminDashboard = () => {
     { label: "Sơ đồ bàn", icon: <TableRestaurant />, path: "/admin/tablepage" },
     { label: "Category", icon: <Category />, path: "/admin/categorypage" },
     { label: "Sản Phẩm", icon: <Inventory2 />, path: "/admin/productpage" },
+    { label: "Nhân Viên", icon: <People />, path: "/admin/staffs" },
+    { label: "Nhà Bếp", icon: <Restaurant />, path: "/admin/kitchens" },
   ];
 
   const handleLogout = () =>{
